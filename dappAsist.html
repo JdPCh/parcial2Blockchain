@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GUI SC - Control Asistencia - 603001</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --ink: #18212d;
+      --muted: #667085;
+      --line: #e3e8ef;
+      --accent: #2f5d8c;
+      --accent-hover: #24496e;
+      --accent-soft: #e9f0f7;
+      --ok: #1f8a5b;
+      --radius: 14px;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #12161c;
+        --surface: #1a2029;
+        --ink: #e8edf3;
+        --muted: #93a0b1;
+        --line: #2a3340;
+        --accent: #7fb0e0;
+        --accent-hover: #a2c6ec;
+        --accent-soft: #223142;
+        --ok: #4cc38a;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 48px 20px 64px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ---------- Encabezado ---------- */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: var(--muted);
+    }
+
+    /* ---------- Conexión ---------- */
+    .conexion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .conexion .cuenta {
+      min-width: 0;
+      flex: 1 1 220px;
+    }
+
+    .conexion .cuenta p { margin: 0; }
+
+    .conexion .cuenta strong {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    #dirCuenta {
+      display: block;
+      font-family: var(--mono);
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    #estado {
+      margin: 6px 0 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    #estado::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      vertical-align: 1px;
+    }
+
+    /* ---------- Secciones ---------- */
+    section {
+      padding: 24px 24px 26px;
+      margin-bottom: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .campo {
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    /* ---------- Botones ---------- */
+    button {
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      button { color: #10202f; }
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--accent-soft);
+      outline-offset: 2px;
+    }
+
+    button.secundario {
+      color: var(--accent);
+      background: transparent;
+      border-color: var(--line);
+    }
+
+    button.secundario:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    /* ---------- Reporte ---------- */
+    ul {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 18px 0 16px;
+      padding: 0;
+      list-style: none;
+    }
+
+    ul li {
+      padding: 12px 14px;
+      background: var(--bg);
+      border-radius: 10px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    ul li strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    ol li {
+      padding: 6px 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink);
+      word-break: break-all;
+      border-bottom: 1px solid var(--line);
+    }
+
+    ol li:last-child { border-bottom: 0; }
+
+    @media (max-width: 480px) {
+      body { padding: 28px 14px 48px; }
+      section { padding: 20px 18px 22px; }
+      ul { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <header>
+      <h1>Control de asistencia <span>Curso 603001</span></h1>
+    </header>
+
+    <div class="conexion">
+      <div class="cuenta">
+        <p><strong>Cuenta conectada</strong> <span id="dirCuenta">Desconectado!</span></p>
+        <p id="estado">Sin conectar.</p>
+      </div>
+      <button id="btnConectar">Conectar wallet</button>
+    </div>
+
+    <section>
+      <h2>1. Abrir asistencia</h2>
+
+      <div class="campo">
+        <label for="idSesion">ID sesión</label>
+        <input type="number" id="idSesion">
+      </div>
+
+      <div class="campo">
+        <label for="temaClase">Tema de la clase</label>
+        <input type="text" id="temaClase">
+      </div>
+
+      <div class="campo">
+        <label for="palabraSecretaAbrir">Palabra secreta</label>
+        <input type="text" id="palabraSecretaAbrir">
+      </div>
+
+      <button id="btnAbrir">Abrir asistencia</button>
+    </section>
+
+    <section>
+      <h2>2. Marcar asistencia</h2>
+
+      <div class="campo">
+        <label for="palabraSecretaMarcar">Palabra secreta</label>
+        <input type="password" id="palabraSecretaMarcar">
+      </div>
+
+      <button id="btnMarcar">Marcar asistencia</button>
+    </section>
+
+    <section>
+      <h2>3. Cerrar asistencia</h2>
+      <button id="btnCerrar" class="secundario">Cerrar asistencia</button>
+    </section>
+
+    <section>
+      <h2>4. Reporte sesión de clase</h2>
+
+      <button id="btnConsultarSesion">Consultar sesión</button>
+
+      <ul>
+        <li><strong>ID sesión</strong> <span id="repIdSesion">-</span></li>
+        <li><strong>Tema</strong> <span id="repTema">-</span></li>
+        <li><strong>Estado</strong> <span id="repEstado">-</span></li>
+        <li><strong>Total asistentes</strong> <span id="repTotal">-</span></li>
+      </ul>
+
+      <button id="btnVerAsistentes" class="secundario">Ver lista de asistentes</button>
+
+      <h3>Asistentes</h3>
+
+      <ol id="listaAsistentes">
+        <li>-</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <script>
+
+    const CONTRACT_ADDRESS = "0x0f31dAC59429a87B8A96AD41d259053a660fAaA5";
+
+    const CONTRACT_ABI = [{ "inputs": [], "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "uint256", "name": "idSesion", "type": "uint256" }, { "indexed": false, "internalType": "string", "name": "temaClase", "type": "string" }, { "indexed": false, "internalType": "uint256", "name": "fecha", "type": "uint256" }], "name": "AsistenciaAbierta", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "uint256", "name": "idSesion", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "fecha", "type": "uint256" }], "name": "AsistenciaCerrada", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "estudiante", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "idSesion", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "fecha", "type": "uint256" }], "name": "AsistenciaMarcada", "type": "event" }, { "inputs": [{ "internalType": "uint256", "name": "_idSesion", "type": "uint256" }, { "internalType": "string", "name": "_temaClase", "type": "string" }, { "internalType": "string", "name": "_palabraSecreta", "type": "string" }], "name": "abrirAsistencia", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "cerrarAsistencia", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "estudiante", "type": "address" }], "name": "consultarAsistencia", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "consultarSesion", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }, { "internalType": "string", "name": "", "type": "string" }, { "internalType": "bool", "name": "", "type": "bool" }, { "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "string", "name": "_palabraIngresada", "type": "string" }], "name": "marcarAsistencia", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "indice", "type": "uint256" }], "name": "obtenerAsistente", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "obtenerListaAsistentes", "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "totalAsistentes", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
+
+
+    // ============================
+    //   VARIABLES GLOBALES
+    // ============================
+    let proveedor;
+    let firmante;
+    let contrato;
+
+
+    // ============================
+    //   ELEMENTOS DEL DOM
+    // ============================
+    const estado = document.getElementById("estado");
+    const dirCuenta = document.getElementById("dirCuenta");
+
+    const btnConectar = document.getElementById("btnConectar");
+    const btnAbrir = document.getElementById("btnAbrir");
+    const btnMarcar = document.getElementById("btnMarcar");
+    const btnCerrar = document.getElementById("btnCerrar");
+    const btnConsultarSesion = document.getElementById("btnConsultarSesion");
+    const btnVerAsistentes = document.getElementById("btnVerAsistentes");
+
+    const idSesion = document.getElementById("idSesion");
+    const temaClase = document.getElementById("temaClase");
+    const palabraSecretaAbrir = document.getElementById("palabraSecretaAbrir");
+    const palabraSecretaMarcar = document.getElementById("palabraSecretaMarcar");
+
+    const repIdSesion = document.getElementById("repIdSesion");
+    const repTema = document.getElementById("repTema");
+    const repEstado = document.getElementById("repEstado");
+    const repTotal = document.getElementById("repTotal");
+    const listaAsistentes = document.getElementById("listaAsistentes");
+
+
+    // ============================
+    //   CONECTAR METAMASK
+    // ============================
+    async function conectar() {
+      try {
+        if (!window.ethereum) {
+          estado.textContent = "MetaMask no está instalado.";
+          return;
+        }
+
+        estado.textContent = "Conectando con MetaMask...";
+
+        proveedor = new ethers.providers.Web3Provider(window.ethereum);
+        await proveedor.send("eth_requestAccounts", []);
+
+        firmante = proveedor.getSigner();
+        const cuenta = await firmante.getAddress();
+
+        dirCuenta.textContent = cuenta;
+
+        contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, firmante);
+
+        estado.textContent = "Conectado correctamente.";
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al conectar: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   VALIDAR CONEXIÓN
+    // ============================
+    function validarConexion() {
+      if (!contrato) {
+        estado.textContent = "Primero debe conectar MetaMask.";
+        return false;
+      }
+      return true;
+    }
+
+
+    // ============================
+    //   ABRIR ASISTENCIA
+    // ============================
+    async function abrirAsistencia() {
+      try {
+        if (!validarConexion()) return;
+
+        if (!idSesion.value || !temaClase.value || !palabraSecretaAbrir.value) {
+          estado.textContent = "Debe completar ID, tema y palabra secreta.";
+          return;
+        }
+
+        estado.textContent = "Enviando transacción para abrir asistencia...";
+
+        const tx = await contrato.abrirAsistencia(
+          idSesion.value,
+          temaClase.value,
+          palabraSecretaAbrir.value
+        );
+
+        estado.textContent = "Transacción enviada. Esperando confirmación...";
+        await tx.wait();
+        estado.textContent = "Asistencia abierta correctamente.";
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al abrir asistencia: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   MARCAR ASISTENCIA
+    // ============================
+    async function marcarAsistencia() {
+      try {
+        if (!validarConexion()) return;
+
+        if (!palabraSecretaMarcar.value) {
+          estado.textContent = "Debe ingresar la palabra secreta.";
+          return;
+        }
+
+        estado.textContent = "Enviando transacción para marcar asistencia...";
+
+        const tx = await contrato.marcarAsistencia(palabraSecretaMarcar.value);
+
+        estado.textContent = "Transacción enviada. Esperando confirmación...";
+        await tx.wait();
+        estado.textContent = "Asistencia marcada correctamente.";
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al marcar asistencia: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   CERRAR ASISTENCIA
+    // ============================
+    async function cerrarAsistencia() {
+      try {
+        if (!validarConexion()) return;
+
+        estado.textContent = "Enviando transacción para cerrar asistencia...";
+
+        const tx = await contrato.cerrarAsistencia();
+
+        estado.textContent = "Transacción enviada. Esperando confirmación...";
+        await tx.wait();
+        estado.textContent = "Asistencia cerrada correctamente.";
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al cerrar asistencia: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   CONSULTAR SESIÓN
+    // ============================
+    async function consultarSesion() {
+      try {
+        if (!validarConexion()) return;
+
+        estado.textContent = "Consultando datos de la sesión...";
+
+        const datos = await contrato.consultarSesion();
+
+        repIdSesion.textContent = datos[0].toString();
+        repTema.textContent = datos[1];
+        repEstado.textContent = datos[2] ? "Activa" : "Cerrada";
+        repTotal.textContent = datos[3].toString();
+
+        estado.textContent = "Datos de sesión consultados correctamente.";
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al consultar sesión: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   VER LISTA DE ASISTENTES
+    // ============================
+    async function verAsistentes() {
+      try {
+        if (!validarConexion()) return;
+
+        estado.textContent = "Consultando lista de asistentes...";
+
+        // Consultar cuántos estudiantes están registrados en el contrato.
+        const total = (await contrato.totalAsistentes()).toNumber();
+        listaAsistentes.innerHTML = "";
+
+        if (total === 0) {
+          listaAsistentes.innerHTML = "<li>No hay asistentes registrados.</li>";
+        } else {
+          // Los arreglos en Solidity comienzan en el índice 0.
+          // La interfaz recorre los índices automáticamente.
+          for (let indice = 0; indice < total; indice++) {
+            estado.textContent = `Consultando asistente ${indice + 1} de ${total}...`;
+            const direccion = await contrato.obtenerAsistente(indice);
+            const li = document.createElement("li");
+            li.textContent = direccion;
+            listaAsistentes.appendChild(li);
+          }
+        }
+
+        estado.textContent = `Lista consultada correctamente (${total} asistentes).`;
+
+      } catch (err) {
+        console.error(err);
+        estado.textContent = "Error al consultar asistentes: " + obtenerMensajeError(err);
+      }
+    }
+
+
+    // ============================
+    //   MENSAJE DE ERROR MÁS LEGIBLE
+    // ============================
+    function obtenerMensajeError(err) {
+      if (err.data && err.data.message) return err.data.message;
+      if (err.error && err.error.message) return err.error.message;
+      if (err.reason) return err.reason;
+      if (err.message) return err.message;
+      return err;
+    }
+
+
+    // ============================
+    //   EVENTOS DE BOTONES
+    // ============================
+    btnConectar.addEventListener("click", conectar);
+    btnAbrir.addEventListener("click", abrirAsistencia);
+    btnMarcar.addEventListener("click", marcarAsistencia);
+    btnCerrar.addEventListener("click", cerrarAsistencia);
+    btnConsultarSesion.addEventListener("click", consultarSesion);
+    btnVerAsistentes.addEventListener("click", verAsistentes);
+
+  </script>
+
+</body>
+</html>
